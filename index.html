@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kosovo Market Pulse — Market Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#070B14;
+  --surface:#0D1422;
+  --surface2:#121C30;
+  --line:rgba(140,165,210,.13);
+  --line-strong:rgba(140,165,210,.25);
+  --text:#E8EDF6;
+  --muted:#8A99B5;
+  --faint:#5A6A88;
+  --blue:#4F8DFD;
+  --blue-deep:#2A5BC0;
+  --gold:#E5B84B;
+  --green:#3DD68C;
+  --red:#FF6B5E;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --display:'Space Grotesk',sans-serif;
+  --body:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);color:var(--text);background:var(--void);
+  font-size:15px;line-height:1.6;
+  background-image:
+    radial-gradient(1100px 480px at 75% -120px, rgba(79,141,253,.10), transparent 65%),
+    radial-gradient(800px 400px at 8% 12%, rgba(229,184,75,.05), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(140,165,210,.025) 0 1px, transparent 1px 96px);
+}
+.wrap{max-width:1220px;margin:0 auto;padding:0 24px}
+a{color:var(--blue);text-decoration:none}
+
+/* ============ top bar ============ */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,11,20,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar-in{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 0}
+.logo{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
+.logo .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.4s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.logo .gold{color:var(--gold)}
+.topnav{display:flex;gap:4px;flex-wrap:wrap}
+.topnav a{font-family:var(--mono);font-size:11px;letter-spacing:.6px;color:var(--muted);padding:6px 10px;border-radius:4px;text-transform:uppercase}
+.topnav a:hover{color:var(--text);background:var(--surface2)}
+.top-tools{display:flex;align-items:center;gap:12px}
+.live{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--green);border:1px solid rgba(61,214,140,.4);padding:4px 9px;border-radius:3px}
+.lang-toggle{display:flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;font-family:var(--mono);font-size:11.5px}
+.lang-toggle button{background:transparent;border:0;padding:6px 11px;cursor:pointer;font-family:inherit;font-size:inherit;color:var(--muted)}
+.lang-toggle button.active{background:var(--blue);color:#fff}
+.lang-toggle button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+@media(max-width:900px){.topnav{display:none}}
+
+/* ============ ticker ============ */
+.ticker{border-bottom:1px solid var(--line);overflow:hidden;white-space:nowrap;background:var(--surface)}
+.ticker-track{display:inline-block;padding:8px 0;font-family:var(--mono);font-size:12px;color:var(--muted);animation:tick 52s linear infinite}
+.ticker-track span{margin:0 28px}
+.ticker .au{color:var(--gold)}.ticker .up{color:var(--green)}.ticker .dn{color:var(--red)}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.ticker-track{animation:none;white-space:normal}.logo .dot{animation:none}}
+
+/* ============ hero / pulse index ============ */
+.hero{padding:54px 0 40px}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:42px;align-items:center}
+@media(max-width:940px){.hero-grid{grid-template-columns:1fr}}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.6vw,52px);line-height:1.08;letter-spacing:-1px}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero .lede{color:var(--muted);font-size:16px;margin-top:16px;max-width:54ch}
+.hero .meta{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:20px}
+.hero .meta b{color:var(--text)}
+
+.gauge-card{background:linear-gradient(160deg,var(--surface2),var(--surface));border:1px solid var(--line-strong);border-radius:14px;padding:26px;position:relative;overflow:hidden}
+.gauge-card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px 200px at 50% 0%,rgba(79,141,253,.12),transparent 70%);pointer-events:none}
+.gauge-head{display:flex;justify-content:space-between;align-items:baseline}
+.gauge-head h2{font-family:var(--display);font-size:16px;font-weight:600}
+.gauge-head .v{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.gauge-wrap{display:flex;justify-content:center;margin:8px 0 4px}
+.gauge-num{font-family:var(--mono);font-weight:600;fill:var(--text)}
+.gauge-lab{font-family:var(--mono);fill:var(--muted);letter-spacing:1px}
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:14px}
+.pillar .pl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:5px}
+.pillar .pl b{color:var(--text)}
+.pbar{height:5px;border-radius:3px;background:rgba(140,165,210,.14);overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:3px;width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.method-note{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:16px;line-height:1.7}
+
+/* ============ KPI grid ============ */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:8px 0 14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;position:relative;transition:border-color .25s,transform .25s}
+.kpi:hover{border-color:var(--line-strong);transform:translateY(-2px)}
+.kpi .l{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:600;margin:6px 0 3px;font-variant-numeric:tabular-nums}
+.kpi .d{font-family:var(--mono);font-size:11px}
+.kpi .src{position:absolute;top:13px;right:13px;font-family:var(--mono);font-size:8.5px;letter-spacing:.8px;color:var(--faint)}
+.up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--muted)}.au{color:var(--gold)}
+
+/* ============ sections ============ */
+section{padding:46px 0 8px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.sec-head .num{font-family:var(--mono);font-size:12px;color:var(--blue);letter-spacing:1px}
+.sec-head h2{font-family:var(--display);font-size:clamp(21px,2.6vw,28px);font-weight:700;letter-spacing:-.4px}
+.sec-sub{color:var(--muted);font-size:14px;margin-bottom:22px;max-width:72ch}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.trio{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+@media(max-width:880px){.duo,.trio{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.panel h3{font-family:var(--display);font-size:14.5px;font-weight:500;margin-bottom:14px;color:var(--text)}
+.panel .src{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:12px}
+.chart-box{position:relative;height:270px}
+.chart-sm{position:relative;height:215px}
+
+/* stat list inside panels */
+.stat-rows{display:flex;flex-direction:column;gap:0}
+.srow{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px dashed var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .k{font-size:13px;color:var(--muted)}
+.srow .n{font-family:var(--mono);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* takeaway */
+.takeaway{border:1px solid rgba(229,184,75,.35);background:linear-gradient(120deg,rgba(229,184,75,.08),rgba(229,184,75,.02));padding:16px 18px;border-radius:10px;margin-top:16px}
+.takeaway .tag{font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--gold);text-transform:uppercase}
+.takeaway p{font-size:14.5px;margin-top:6px;color:var(--text)}
+
+/* mini strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.mini{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.mini .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.mini .v{font-family:var(--mono);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px}
+.mini .d{font-family:var(--mono);font-size:10.5px;margin-top:2px}
+
+/* concentration bar */
+.conc{margin-top:14px}
+.conc .cl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px}
+.conc-bar{display:flex;height:22px;border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.conc-bar i{display:block;height:100%}
+
+/* signals table */
+.signals{width:100%;border-collapse:collapse}
+.signals th{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line-strong)}
+.signals td{padding:13px 12px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top}
+.signals td.m{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.signals tr:hover td{background:rgba(79,141,253,.04)}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:3px 9px;border-radius:3px;text-transform:uppercase;white-space:nowrap}
+.badge.pos{color:var(--green);border:1px solid rgba(61,214,140,.45)}
+.badge.risk{color:var(--red);border:1px solid rgba(255,107,94,.45)}
+.badge.watch{color:var(--gold);border:1px solid rgba(229,184,75,.45)}
+@media(max-width:700px){.signals .hide-m{display:none}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.pbar i{transition:none}}
+
+/* footer */
+footer{margin-top:56px;border-top:1px solid var(--line-strong);padding:30px 0 48px;background:var(--surface)}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
+footer h4{font-family:var(--display);font-size:14px;margin-bottom:8px}
+footer p,footer li{font-size:12.5px;color:var(--muted)}
+footer ul{list-style:none}
+footer li{font-family:var(--mono);font-size:11.5px;margin:4px 0}
+.byline{font-family:var(--mono);font-size:12px;margin-top:16px;color:var(--text)}
+.byline .gold{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap topbar-in">
+  <div class="logo"><span class="dot"></span>Kosovo Market <span class="gold">Pulse</span></div>
+  <nav class="topnav">
+    <a href="#prices" data-i18n="nav_prices"></a>
+    <a href="#trade" data-i18n="nav_trade"></a>
+    <a href="#credit" data-i18n="nav_credit"></a>
+    <a href="#capital" data-i18n="nav_capital"></a>
+    <a href="#signals" data-i18n="nav_signals"></a>
+  </nav>
+  <div class="top-tools">
+    <span class="live">AUTO · <span id="last-updated">—</span></span>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button id="btn-sq" onclick="setLang('sq')">SQ</button>
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
+
+<main class="wrap">
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker" data-i18n="kicker"></div>
+      <h1 data-i18n-html="headline"></h1>
+      <p class="lede" data-i18n="lede"></p>
+      <p class="meta" data-i18n-html="hero_meta"></p>
+    </div>
+    <div class="gauge-card reveal">
+      <div class="gauge-head"><h2 data-i18n="gauge_title"></h2><span class="v">v1.0 · <span data-i18n="gauge_scale"></span></span></div>
+      <div class="gauge-wrap">
+        <svg width="240" height="150" viewBox="0 0 240 150" role="img" aria-label="Pulse Index">
+          <path d="M 26 134 A 94 94 0 0 1 214 134" fill="none" stroke="rgba(140,165,210,.16)" stroke-width="13" stroke-linecap="round"/>
+          <path id="gauge-arc" d="M 26 134 A 94 94 0 0 1 214 134" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round" stroke-dasharray="295" stroke-dashoffset="295" style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)"/>
+          <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#FF6B5E"/><stop offset="50%" stop-color="#E5B84B"/><stop offset="100%" stop-color="#3DD68C"/>
+          </linearGradient></defs>
+          <text x="120" y="112" text-anchor="middle" class="gauge-num" font-size="44" id="gauge-num">0</text>
+          <text x="120" y="136" text-anchor="middle" class="gauge-lab" font-size="10" id="gauge-verdict"></text>
+        </svg>
+      </div>
+      <div class="pillars" id="pillars"></div>
+      <div class="method-note" data-i18n="method_note"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ KPI GRID ============ -->
+<div class="kpis reveal" id="kpi-row"></div>
+
+<!-- ============ 01 PRICES ============ -->
+<section id="prices" class="reveal">
+  <div class="sec-head"><span class="num">01</span><h2 data-i18n="sec1"></h2></div>
+  <p class="sec-sub" data-i18n="sec1_sub"></p>
+  <div class="duo">
+    <div class="panel">
+      <h3 data-i18n="ch_infl_trend"></h3>
+      <div class="chart-box"><canvas id="chartInflation"></canvas></div>
+      <div class="src" id="src-inflation"></div>
+    </div>
+    <div class="panel">
+      <h3 data-i18n="ch_infl_cat"></h3>
+      <div class="chart-box"><canvas id="chartCategories"></canvas></div>
+      <div class="src" id="src-categories"></div>
+    </div>
+  </div>
+  <div class="takeaway"><span class="tag" data-i18n="tk_tag"></span><p data-i18n="tk1"></p></div>
+</section>
+
+<!-- ============ 02 TRADE ============ -->
+<section id="trade" class="reveal">
+  <div class="sec-head"><span class="num">02</span><h2 data-i18n="sec2"></h2></div>
+  <p class="sec-sub" data-i18n="sec2_sub"></p>
+  <div class="strip" id="trade-strip"></div>
+  <div class="duo">
+    <div class="panel">
+      <h3 data-i18n="ch_exp_struct"></h3>
+      <div class="chart-box"><canvas id="chartExportStructure"></canvas></div>
+      <div class="src" id="src-structure"></div>
+    </div>
+    <div class="panel">
+      <h3 data-i18n="ch_exp_dest"></h3>
+      <div class="chart-sm"><canvas id="chartDestinations"></canvas></div>
+      <div class="conc">
+        <div class="cl"><span data-i18n="conc_label"></span><b id="conc-val" style="color:var(--gold)"></b></div>
+        <div class="conc-bar" id="conc-bar"></div>
+      </div>
+      <div class="src" id="src-destinations"></div>
+    </div>
+  </div>
+  <div class="takeaway"><span class="tag" data-i18n="tk_tag"></span><p data-i18n="tk2"></p></div>
+</section>
+
+<!-- ============ 03 MONEY & CREDIT ============ -->
+<section id="credit" class="reveal">
+  <div class="sec-head"><span class="num">03</span><h2 data-i18n="sec3"></h2></div>
+  <p class="sec-sub" data-i18n="sec3_sub"></p>
+  <div class="trio">
+    <div class="panel">
+      <h3 data-i18n="ch_loans"></h3>
+      <div class="chart-box"><canvas id="chartLoans"></canvas></div>
+      <div class="src" id="src-loans"></div>
+    </div>
+    <div class="panel">
+      <h3 data-i18n="ch_rates"></h3>
+      <div class="stat-rows" id="rate-rows"></div>
+      <div class="src" id="src-rates"></div>
+    </div>
+  </div>
+  <div class="takeaway"><span class="tag" data-i18n="tk_tag"></span><p data-i18n="tk3"></p></div>
+</section>
+
+<!-- ============ 04 CAPITAL ============ -->
+<section id="capital" class="reveal">
+  <div class="sec-head"><span class="num">04</span><h2 data-i18n="sec4"></h2></div>
+  <p class="sec-sub" data-i18n="sec4_sub"></p>
+  <div class="duo">
+    <div class="panel">
+      <h3 data-i18n="ch_fdi_sector"></h3>
+      <div class="chart-box"><canvas id="chartFdiSector"></canvas></div>
+      <div class="src" id="src-fdi-sector"></div>
+    </div>
+    <div class="panel">
+      <h3 data-i18n="ch_fdi_origin"></h3>
+      <div class="chart-sm"><canvas id="chartFdiOrigin"></canvas></div>
+      <div class="stat-rows" style="margin-top:8px" id="fdi-rows"></div>
+      <div class="src" id="src-fdi-origin"></div>
+    </div>
+  </div>
+  <div class="takeaway"><span class="tag" data-i18n="tk_tag"></span><p data-i18n="tk4"></p></div>
+</section>
+
+<!-- ============ 05 SIGNALS ============ -->
+<section id="signals" class="reveal">
+  <div class="sec-head"><span class="num">05</span><h2 data-i18n="sec5"></h2></div>
+  <p class="sec-sub" data-i18n="sec5_sub"></p>
+  <div class="panel" style="padding:8px 6px">
+    <table class="signals">
+      <thead><tr>
+        <th data-i18n="th_indicator"></th>
+        <th data-i18n="th_value"></th>
+        <th class="hide-m" data-i18n="th_read"></th>
+        <th data-i18n="th_signal"></th>
+      </tr></thead>
+      <tbody id="signal-rows"></tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap foot-grid">
+  <div>
+    <h4 data-i18n="ft_method"></h4>
+    <p data-i18n="ft_method_p"></p>
+    <div class="byline" data-i18n-html="byline"></div>
+  </div>
+  <div>
+    <h4 data-i18n="ft_sources"></h4>
+    <ul>
+      <li>ASK — askdata.rks-gov.net (PxWeb API)</li>
+      <li>BQK — bqk-kos.org (Time Series, BoP)</li>
+      <li>Dogana e Kosovës — Open Data</li>
+      <li>Instituti GAP — FDI 2025</li>
+      <li>World Bank — WB SEE Regular Report</li>
+    </ul>
+  </div>
+  <div>
+    <h4 data-i18n="ft_pulse"></h4>
+    <p data-i18n="ft_pulse_p"></p>
+  </div>
+</div></footer>
+
+<script>
+/* =====================================================================
+   DATA — loaded from ./data.json when the ETL has run; SEED holds
+   verified published figures as fallback. All values are official data
+   (ASK, BQK, Dogana, GAP Institute, World Bank).
+   ===================================================================== */
+const SEED = {
+  last_updated: "2026-06-10",
+  macro: { gdp_growth_2025: 3.9, gdp_fc_cbk_2026: 4.1, gdp_fc_wb_2026: 3.7 },
+  inflation: {
+    latest_yoy: 6.8, latest_mom: -0.4, ref_month: "2026-05",
+    trend: { labels: ["Jan 26","Shk 26","Mar 26","Pri 26","Maj 26"], yoy: [5.8,6.0,6.7,7.5,6.8] },
+    categories: { ref: "2026-05", items: [
+      {sq:"Transporti",en:"Transport",v:14.1},
+      {sq:"Strehimi, energjia",en:"Housing, energy",v:13.2},
+      {sq:"Pije alkoolike, duhan",en:"Alcohol, tobacco",v:5.6},
+      {sq:"Restorante, hotele",en:"Restaurants, hotels",v:5.3},
+      {sq:"Ushqimi",en:"Food",v:5.1},
+      {sq:"Shëndetësia",en:"Health",v:4.1},
+      {sq:"Mobilje, pajisje",en:"Furnishings",v:3.6},
+      {sq:"Rekreacioni",en:"Recreation",v:2.7},
+      {sq:"Veshje, këpucë",en:"Clothing",v:2.4},
+      {sq:"Informacion, komunikim",en:"ICT",v:0.2}
+    ]}
+  },
+  trade: {
+    ref_month: "2026-03",
+    exports_m: 88.4, exports_yoy: 18.2,
+    imports_m: 651.8, imports_yoy: 6.8,
+    deficit_m: 563.5, deficit_yoy: 5.2,
+    coverage_pct: 13.6,
+    year_2025: { exports: 942.1, imports: 7048 },
+    structure: [
+      {sq:"Metale bazë",en:"Base metals",v:26.2},
+      {sq:"Plastikë & gomë",en:"Plastics & rubber",v:12.4},
+      {sq:"Ushqime, pije, duhan",en:"Food, bev., tobacco",v:11.1},
+      {sq:"Artikuj të ndryshëm",en:"Misc. manufactures",v:8.3},
+      {sq:"Tekstil",en:"Textiles",v:8.2},
+      {sq:"Tjera",en:"Other",v:33.8}
+    ],
+    destinations: [
+      {sq:"CEFTA",en:"CEFTA",v:46.2},
+      {sq:"BE",en:"EU",v:33.2},
+      {sq:"Tjera",en:"Other",v:20.7}
+    ],
+    import_conc: [ {sq:"Kina",en:"China",v:14.6}, {sq:"Turqia",en:"Turkey",v:11.0} ]
+  },
+  credit: {
+    ref_month: "2026-04",
+    loans_b: 6.96, loans_mom_m: 103.3, loans_mom_pct: 1.51,
+    loans_trend: { labels: ["Dhj 25","Mar 26","Pri 26"], values: [6.67,6.86,6.96] },
+    deposits_b: 7.84,
+    new_loans_m: 235.7, rate_new_loans: 6.88, rate_new_deposits: 3.29,
+    margin: 3.60, ltd_pct: 88.71, assets_b: 9.76
+  },
+  capital: {
+    fdi_2025_b: 1.03, fdi_yoy: 30, fdi_delta_m: 238.2,
+    sectors: [
+      {sq:"Patundshmëri",en:"Real estate",v:75,m:770},
+      {sq:"Financa & sigurime",en:"Finance & insurance",v:12,m:124.8},
+      {sq:"Tregti",en:"Wholesale & retail",v:3,m:32.1},
+      {sq:"TIK",en:"ICT",v:3,m:26.2},
+      {sq:"Energji",en:"Energy",v:2,m:22.1},
+      {sq:"Tjera",en:"Other",v:5,m:55}
+    ],
+    origins: [
+      {sq:"Gjermania",en:"Germany",m:268.7},
+      {sq:"Zvicra",en:"Switzerland",m:223.9},
+      {sq:"Tjera",en:"Other",m:537.4}
+    ]
+  },
+  consumer: { remittances_q1_m: 313.5, remit_ref: "T1 2026", ca_deficit_q1_m: 239.6, ca_yoy: -22.2 }
+};
+
+/* =====================================================================
+   PULSE INDEX — composite 0–100, computed live, methodology disclosed.
+   demand   = 50 + (GDP forecast − 3)·15 + FDI y/y·0.5          (capped)
+   cost     = 100 − (inflation − 2)·12                           (ECB-style 2% anchor)
+   external = export coverage·2 + export growth y/y
+   credit   = 50 + loan m/m %·12 − real new-loan rate·5
+   ===================================================================== */
+function clamp(v){ return Math.max(5, Math.min(95, v)); }
+function computePulse(d){
+  const demand   = clamp(50 + (d.macro.gdp_fc_cbk_2026 - 3)*15 + d.capital.fdi_yoy*0.5);
+  const cost     = clamp(100 - (d.inflation.latest_yoy - 2)*12);
+  const external = clamp(d.trade.coverage_pct*2 + d.trade.exports_yoy);
+  const realRate = d.credit.rate_new_loans - d.inflation.latest_yoy;
+  const credit   = clamp(50 + d.credit.loans_mom_pct*12 - realRate*5);
+  const score    = Math.round((demand + cost + external + credit)/4);
+  return {score, pillars:[
+    {key:'demand', v:Math.round(demand)},
+    {key:'cost', v:Math.round(cost)},
+    {key:'external', v:Math.round(external)},
+    {key:'credit', v:Math.round(credit)}
+  ]};
+}
+
+/* ===================================================================== I18N */
+const I18N = {
+sq:{
+  nav_prices:"Çmimet", nav_trade:"Tregtia", nav_credit:"Kredia", nav_capital:"Kapitali", nav_signals:"Sinjalet",
+  kicker:"Inteligjencë tregu · Kosovë · të dhëna zyrtare",
+  headline:"Kërkesa qëndron. Kostot shtrëngojnë. <em>Kapitali rrjedh — në beton.</em>",
+  lede:"Çdo shifër këtu vjen nga burime zyrtare (ASK, BQK, Dogana) dhe përditësohet automatikisht ditën e publikimit. Interpretimi — çka do të thotë për biznesin tuaj — është shtresa që nuk e gjeni në PDF-të e institucioneve.",
+  hero_meta:"Publikimet e fundit: <b>IHÇK maj 2026</b> · <b>Tregtia mars 2026</b> · <b>Bankat prill 2026</b> · <b>IHD viti 2025</b>",
+  gauge_title:"Pulse Index", gauge_scale:"0–100",
+  verdicts:{lo:"NËN PRESION", mid:"NEUTRAL–POZITIV", hi:"EKSPANSIV"},
+  pillars:{demand:"Kërkesa", cost:"Presioni i kostove", external:"Sektori i jashtëm", credit:"Kredia"},
+  method_note:"Indeks kompozit nga 4 shtylla: rritja & IHD, inflacioni (ankora 2%), mbulueshmëria & rritja e eksportit, kreditimi & norma reale. Formula e plotë në fund të faqes.",
+  kpi:[
+    {l:"Inflacioni vjetor",src:"ASK 05/26"},
+    {l:"Deficiti tregtar / muaj",src:"ASK 03/26"},
+    {l:"Mbulueshmëria eks/imp",src:"ASK 03/26"},
+    {l:"Kreditë bruto",src:"BQK 04/26"},
+    {l:"IHD 2025",src:"GAP / BQK"},
+    {l:"Rritja e pritur 2026",src:"BQK"}
+  ],
+  sec1:"Presioni i çmimeve", sec1_sub:"Inflacioni zbutet nga maja 7.5% e prillit, por struktura e tij — energji dhe transport, jo kërkesë — përcakton se kush humb marzhë dhe kush ka hapësirë ri-çmimi.",
+  ch_infl_trend:"Inflacioni vjetor (IHÇK, % v/v)",
+  ch_infl_cat:"Ndryshimi i çmimeve sipas kategorive (% v/v)",
+  tk_tag:"Çka do të thotë për biznesin tuaj",
+  tk1:"Dy kategori (transporti +14.1%, energjia +13.2%) po e mbajnë vetë inflacionin lart — kjo është inflacion kostosh, jo kërkese. Nëse kontratat tuaja të logjistikës dhe energjisë s'kanë klauzola indeksimi, marzha po ju rrjedh pikërisht aty. Rënia mujore (-0.4%) sinjalizon se dritarja e ri-çmimit po mbyllet: konkurrenca në retail kthehet te promocionet, jo te çmimet më të larta.",
+  sec2:"Tregtia e jashtme", sec2_sub:"Eksportet po rriten dyfish më shpejt se importet në terma relativë — por nga një bazë 7 herë më e vogël. Pyetja për biznesin: ku është kërkesa dhe ku është rreziku i furnizimit.",
+  trade_strip:[{l:"Eksporti (mars)"},{l:"Importi (mars)"},{l:"Deficiti (mars)"},{l:"Eksportet 2025"},{l:"Importet 2025"}],
+  ch_exp_struct:"Struktura e eksporteve (% e totalit, mars 2026)",
+  ch_exp_dest:"Destinacionet e eksportit (% e totalit)",
+  conc_label:"Përqendrimi i importeve: Kina + Turqia",
+  tk2:"CEFTA absorbon 46% të eksporteve dhe po rritet +21.8% — kërkesa rajonale B2B është kanali real i rritjes, jo BE-ja. Metalet bazë (26% e eksporteve) ju ekspozojnë ndaj çmimeve botërore të mallrave. Në anën e importit, Kina + Turqia mbulojnë mbi 1/4 e furnizimit: çdo tronditje logjistike ose tarifore atje godet drejtpërdrejt koston tuaj të mallit — kjo kërkon plan B furnizimi, jo vetëm çmim më të mirë.",
+  sec3:"Paraja & kredia", sec3_sub:"Sistemi bankar po zgjerohet me ritëm të fortë — dhe norma reale e huamarrjes, pas inflacionit, ka rënë praktikisht në zero.",
+  ch_loans:"Kreditë bruto të sistemit bankar (miliardë €)",
+  ch_rates:"Normat & raportet kyçe (prill 2026)",
+  rate_rows:[
+    {k:"Norma në kredi të reja", v:"6.88%"},
+    {k:"Norma në depozita të reja", v:"3.29%"},
+    {k:"Margjina bankare", v:"3.60 pp"},
+    {k:"Norma REALE e huamarrjes (− inflacioni)", v:"≈ 0.1%", hl:true},
+    {k:"Raporti kredi / depozita", v:"88.7%"},
+    {k:"Kredi të reja gjatë prillit", v:"€235.7M"}
+  ],
+  tk3:"Me kredi të reja në 6.88% dhe inflacion 6.8%, kostoja reale e huamarrjes është praktikisht zero — historikisht e lirë për zgjerim të financuar, por vetëm për bizneset, çmimet e të cilave ndjekin inflacionin. Kujdes te raporti kredi/depozita: 85.9% në janar → 88.7% në prill. Likuiditeti po shtrëngohet — mos prisni ulje të normave; nëse keni nevojë për financim këtë vit, më herët është më lirë.",
+  sec4:"Kapitali & investimet", sec4_sub:"IHD-të thyen rekordin: mbi €1 miliard në 2025. Por 75 cent të çdo euroje shkuan në patundshmëri — dhe kjo e ndryshon se kush fiton në të vërtetë.",
+  ch_fdi_sector:"IHD 2025 sipas sektorëve (€1.03 miliard total)",
+  ch_fdi_origin:"Origjina e IHD-ve 2025 (milionë €)",
+  fdi_rows:[
+    {k:"Gjermania + Zvicra", v:"48% e totalit"},
+    {k:"Patundshmëria", v:"€770M (75%)"},
+    {k:"TIK — gjithë sektori", v:"vetëm €26.2M"}
+  ],
+  tk4:"€770M IHD në patundshmëri do të thotë: zinxhiri i vlerës së ndërtimit — materiale, mobilim, instalime, shërbime profesionale — është aty ku paraja e huaj realisht zbarkohet. Fituesit indirekt janë furnitorët e ndërtimit, jo vetëm zhvilluesit. Nga ana tjetër, vetëm 3% në TIK tregon se narrativa 'Kosova hub teknologjik' ende s'mbështetet nga kapitali: hapësirë e hapur për atë që pozicionohet i pari.",
+  sec5:"Sinjalet e tregut", sec5_sub:"Indikatorë të derivuar — leximi që nuk e bën asnjë institucion, sepse kërkon kombinimin e burimeve.",
+  th_indicator:"Indikatori", th_value:"Vlera", th_read:"Leximi", th_signal:"Sinjali",
+  signals:[
+    {i:"Norma reale e huamarrjes", v:"≈ 0.1%", r:"Kredi 6.88% − inflacion 6.8%. Zgjerimi i financuar është praktikisht falas në terma realë.", s:"pos", b:"Pozitiv"},
+    {i:"Hendeku i parashikimeve të rritjes", v:"0.4 pp", r:"BQK 4.1% vs Banka Botërore 3.7% për 2026. Divergjenca = pasiguri planifikimi; buxhetoni me skenarin e ulët.", s:"watch", b:"Vëzhgo"},
+    {i:"Përqendrimi i importeve", v:"25.6%", r:"Kina (14.6%) + Turqia (11.0%). Ekspozim i lartë ndaj tronditjeve të zinxhirit të furnizimit.", s:"risk", b:"Rrezik"},
+    {i:"Trendi kredi/depozita", v:"85.9 → 88.7%", r:"Janar → prill 2026. Likuiditeti bankar po shtrëngohet; çmimi i parasë s'ka arsye të bjerë.", s:"watch", b:"Vëzhgo"},
+    {i:"Dysheme e konsumit (remitancat)", v:"€313.5M / T1", r:"Fuqia blerëse e mbështetur nga diaspora e mban kërkesën konsumatore stabile pavarësisht inflacionit 6.8%.", s:"pos", b:"Pozitiv"},
+    {i:"Përqendrimi i IHD-ve në patundshmëri", v:"75%", r:"Kapitali i huaj s'po ndërton kapacitete prodhuese. Rritja varet nga konsumi & betoni — strukturë e brishtë afatgjatë.", s:"risk", b:"Rrezik"},
+    {i:"Eksporti drejt CEFTA-s", v:"+21.8% v/v", r:"Kërkesa rajonale po rritet më shpejt se ajo e BE-së. Tregjet fqinje = kanali i zgjerimit me kosto më të ulët hyrjeje.", s:"pos", b:"Pozitiv"}
+  ],
+  ft_method:"Si funksionon",
+  ft_method_p:"Pipeline i automatizuar tërheq të dhënat nga API-të publike (PxWeb i ASK-së, seritë kohore të BQK-së, Open Data e Doganës) dhe i publikon këtu ditën e publikimit zyrtar, pa ndërhyrje manuale. Shifrat janë zyrtare; interpretimi është i imi.",
+  ft_sources:"Burimet",
+  ft_pulse:"Metodologjia e Pulse Index",
+  ft_pulse_p:"Kërkesa = 50 + (parashikimi i rritjes − 3)×15 + rritja e IHD×0.5 · Kostot = 100 − (inflacioni − 2)×12 · Jashtë = mbulueshmëria×2 + rritja e eksportit · Kredia = 50 + rritja mujore e kredive×12 − norma reale×5. Mesatarja e 4 shtyllave, 0–100.",
+  byline:"Ndërtuar nga <span class='gold'>Shkumbin</span> · Data Analyst · PL-300 — analiza me porosi & trajnime"
+},
+en:{
+  nav_prices:"Prices", nav_trade:"Trade", nav_credit:"Credit", nav_capital:"Capital", nav_signals:"Signals",
+  kicker:"Market intelligence · Kosovo · official data",
+  headline:"Demand holds. Costs squeeze. <em>Capital flows — into concrete.</em>",
+  lede:"Every figure here comes from official sources (ASK, CBK, Customs) and refreshes automatically on release day. The interpretation — what it means for your business — is the layer you won't find in institutional PDFs.",
+  hero_meta:"Latest releases: <b>HICP May 2026</b> · <b>Trade Mar 2026</b> · <b>Banking Apr 2026</b> · <b>FDI FY 2025</b>",
+  gauge_title:"Pulse Index", gauge_scale:"0–100",
+  verdicts:{lo:"UNDER PRESSURE", mid:"NEUTRAL–POSITIVE", hi:"EXPANSIONARY"},
+  pillars:{demand:"Demand", cost:"Cost pressure", external:"External sector", credit:"Credit"},
+  method_note:"Composite of 4 pillars: growth & FDI, inflation (2% anchor), export coverage & growth, lending & real rates. Full formula in the footer.",
+  kpi:[
+    {l:"Annual inflation",src:"ASK 05/26"},
+    {l:"Monthly trade deficit",src:"ASK 03/26"},
+    {l:"Export/import coverage",src:"ASK 03/26"},
+    {l:"Gross loans",src:"CBK 04/26"},
+    {l:"FDI 2025",src:"GAP / CBK"},
+    {l:"Expected growth 2026",src:"CBK"}
+  ],
+  sec1:"Price pressure", sec1_sub:"Inflation is easing from April's 7.5% peak, but its structure — energy and transport, not demand — determines who loses margin and who has repricing room.",
+  ch_infl_trend:"Annual inflation (HICP, % y/y)",
+  ch_infl_cat:"Price change by category (% y/y)",
+  tk_tag:"What this means for your business",
+  tk1:"Two categories (transport +14.1%, energy +13.2%) are single-handedly holding inflation up — this is cost-push, not demand-pull. If your logistics and energy contracts lack indexation clauses, that's exactly where margin is leaking. The monthly decline (-0.4%) signals the repricing window is closing: retail competition shifts back to promotions, not higher prices.",
+  sec2:"Foreign trade", sec2_sub:"Exports are growing twice as fast as imports in relative terms — from a base seven times smaller. The business question: where is the demand, and where is the supply risk.",
+  trade_strip:[{l:"Exports (Mar)"},{l:"Imports (Mar)"},{l:"Deficit (Mar)"},{l:"Exports 2025"},{l:"Imports 2025"}],
+  ch_exp_struct:"Export structure (% of total, Mar 2026)",
+  ch_exp_dest:"Export destinations (% of total)",
+  conc_label:"Import concentration: China + Turkey",
+  tk2:"CEFTA absorbs 46% of exports and is growing +21.8% — regional B2B demand is the real growth channel, not the EU. Base metals (26% of exports) expose you to global commodity prices. On imports, China + Turkey cover over a quarter of supply: any logistics or tariff shock there hits your cost of goods directly — that calls for a supply plan B, not just a better price.",
+  sec3:"Money & credit", sec3_sub:"The banking system is expanding at pace — and the real cost of borrowing, after inflation, has dropped to practically zero.",
+  ch_loans:"Banking system gross loans (€ billion)",
+  ch_rates:"Key rates & ratios (April 2026)",
+  rate_rows:[
+    {k:"New-loan interest rate", v:"6.88%"},
+    {k:"New-deposit interest rate", v:"3.29%"},
+    {k:"Bank margin", v:"3.60 pp"},
+    {k:"REAL borrowing rate (− inflation)", v:"≈ 0.1%", hl:true},
+    {k:"Loan / deposit ratio", v:"88.7%"},
+    {k:"New loans issued in April", v:"€235.7M"}
+  ],
+  tk3:"With new loans at 6.88% and inflation at 6.8%, the real cost of borrowing is practically zero — historically cheap for financed expansion, but only for businesses whose prices track inflation. Watch the loan/deposit ratio: 85.9% in January → 88.7% in April. Liquidity is tightening — don't expect rate cuts; if you need financing this year, earlier is cheaper.",
+  sec4:"Capital & investment", sec4_sub:"FDI broke the record: over €1 billion in 2025. But 75 cents of every euro went into real estate — and that changes who actually wins.",
+  ch_fdi_sector:"FDI 2025 by sector (€1.03 billion total)",
+  ch_fdi_origin:"FDI 2025 by origin (€ million)",
+  fdi_rows:[
+    {k:"Germany + Switzerland", v:"48% of total"},
+    {k:"Real estate", v:"€770M (75%)"},
+    {k:"ICT — entire sector", v:"only €26.2M"}
+  ],
+  tk4:"€770M of FDI into real estate means: the construction value chain — materials, furnishing, installations, professional services — is where foreign money actually lands. The indirect winners are construction suppliers, not just developers. Meanwhile, only 3% into ICT shows the 'Kosovo tech hub' narrative isn't yet backed by capital: open ground for whoever positions first.",
+  sec5:"Market signals", sec5_sub:"Derived indicators — the reading no single institution publishes, because it requires combining sources.",
+  th_indicator:"Indicator", th_value:"Value", th_read:"Reading", th_signal:"Signal",
+  signals:[
+    {i:"Real borrowing rate", v:"≈ 0.1%", r:"Loans 6.88% − inflation 6.8%. Financed expansion is practically free in real terms.", s:"pos", b:"Positive"},
+    {i:"Growth forecast gap", v:"0.4 pp", r:"CBK 4.1% vs World Bank 3.7% for 2026. Divergence = planning uncertainty; budget on the low scenario.", s:"watch", b:"Watch"},
+    {i:"Import concentration", v:"25.6%", r:"China (14.6%) + Turkey (11.0%). High exposure to supply-chain shocks.", s:"risk", b:"Risk"},
+    {i:"Loan/deposit trend", v:"85.9 → 88.7%", r:"January → April 2026. Bank liquidity tightening; the price of money has no reason to fall.", s:"watch", b:"Watch"},
+    {i:"Consumption floor (remittances)", v:"€313.5M / Q1", r:"Diaspora-backed purchasing power keeps consumer demand stable despite 6.8% inflation.", s:"pos", b:"Positive"},
+    {i:"FDI concentration in real estate", v:"75%", r:"Foreign capital isn't building productive capacity. Growth rests on consumption & concrete — fragile long-term structure.", s:"risk", b:"Risk"},
+    {i:"Exports to CEFTA", v:"+21.8% y/y", r:"Regional demand growing faster than the EU's. Neighbouring markets = the lowest-entry-cost expansion channel.", s:"pos", b:"Positive"}
+  ],
+  ft_method:"How it works",
+  ft_method_p:"An automated pipeline pulls data from public APIs (ASK's PxWeb, CBK time series, Customs Open Data) and publishes it here on the day of official release, no manual steps. The figures are official; the interpretation is mine.",
+  ft_sources:"Sources",
+  ft_pulse:"Pulse Index methodology",
+  ft_pulse_p:"Demand = 50 + (growth forecast − 3)×15 + FDI growth×0.5 · Cost = 100 − (inflation − 2)×12 · External = coverage×2 + export growth · Credit = 50 + monthly loan growth×12 − real rate×5. Average of 4 pillars, 0–100.",
+  byline:"Built by <span class='gold'>Shkumbin</span> · Data Analyst · PL-300 — custom analysis & training"
+}};
+
+let LANG='sq', DATA=SEED, charts={};
+const fmtM=v=>"€"+v.toLocaleString(LANG==='sq'?'de-DE':'en-US')+"M";
+const fmtB=v=>"€"+v.toLocaleString(LANG==='sq'?'de-DE':'en-US')+(LANG==='sq'?" mld":"B");
+const fmtPct=v=>v.toLocaleString(LANG==='sq'?'de-DE':'en-US')+"%";
+
+function setLang(l){
+  LANG=l; document.documentElement.lang=l;
+  document.getElementById('btn-sq').classList.toggle('active',l==='sq');
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  render();
+}
+
+function render(){
+  const t=I18N[LANG];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(t[k]!==undefined&&typeof t[k]==='string')el.textContent=t[k];});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{const k=el.getAttribute('data-i18n-html');if(t[k])el.innerHTML=t[k];});
+  document.getElementById('last-updated').textContent=DATA.last_updated;
+  renderTicker(t); renderGauge(t); renderKPIs(t); renderStrip(t);
+  renderRates(t); renderFdiRows(t); renderSignals(t); renderCharts(t); renderSources();
+}
+
+function renderTicker(t){
+  const d=DATA;
+  const items=[
+    ['au', LANG==='sq'?'ASK · IHÇK maj 2026 — publikuar':'ASK · HICP May 2026 — released'],
+    ['dn', (LANG==='sq'?'Inflacioni ':'Inflation ')+fmtPct(d.inflation.latest_yoy)+' (▼ 7.5%)'],
+    ['up', (LANG==='sq'?'Eksporti mars ':'March exports ')+'+'+fmtPct(d.trade.exports_yoy)],
+    ['', (LANG==='sq'?'Mbulueshmëria ':'Coverage ')+fmtPct(d.trade.coverage_pct)],
+    ['up', (LANG==='sq'?'Kreditë ':'Loans ')+fmtB(d.credit.loans_b)+' (+'+fmtPct(d.credit.loans_mom_pct)+' m/m)'],
+    ['au', 'IHD 2025: '+fmtB(d.capital.fdi_2025_b)+' (+'+d.capital.fdi_yoy+'%)'],
+    ['up', (LANG==='sq'?'Remitancat T1 ':'Remittances Q1 ')+fmtM(d.consumer.remittances_q1_m)],
+    ['dn', (LANG==='sq'?'Transporti +14.1% · Energjia +13.2%':'Transport +14.1% · Energy +13.2%')]
+  ];
+  const html=items.map(([c,x])=>`<span class="${c}">◆ ${x}</span>`).join('');
+  document.getElementById('ticker-track').innerHTML=html+html;
+}
+
+function renderGauge(t){
+  const p=computePulse(DATA);
+  const arc=document.getElementById('gauge-arc');
+  requestAnimationFrame(()=>{arc.style.strokeDashoffset=295-(295*p.score/100);});
+  animateNum(document.getElementById('gauge-num'),p.score,1200);
+  const verdict=p.score<40?t.verdicts.lo:(p.score<65?t.verdicts.mid:t.verdicts.hi);
+  document.getElementById('gauge-verdict').textContent=verdict;
+  const colors={demand:'var(--green)',cost:'var(--red)',external:'var(--gold)',credit:'var(--blue)'};
+  document.getElementById('pillars').innerHTML=p.pillars.map(x=>`
+    <div class="pillar">
+      <div class="pl"><span>${t.pillars[x.key]}</span><b>${x.v}</b></div>
+      <div class="pbar"><i style="background:${colors[x.key]}" data-w="${x.v}%"></i></div>
+    </div>`).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.pbar i').forEach(b=>b.style.width=b.dataset.w);
+  }));
+}
+
+function animateNum(el,target,dur){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=target;return;}
+  const t0=performance.now();
+  (function step(now){
+    const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3);
+    el.textContent=Math.round(target*e);
+    if(k<1)requestAnimationFrame(step);
+  })(t0);
+}
+
+function renderKPIs(t){
+  const d=DATA;
+  const items=[
+    {v:fmtPct(d.inflation.latest_yoy), x:(d.inflation.latest_mom<0?"▼ ":"▲ ")+fmtPct(Math.abs(d.inflation.latest_mom))+" m/m", c:d.inflation.latest_mom<0?'up':'down'},
+    {v:fmtM(d.trade.deficit_m), x:"▲ "+fmtPct(d.trade.deficit_yoy)+" y/y", c:'down'},
+    {v:fmtPct(d.trade.coverage_pct), x:(LANG==='sq'?"eksporti +":"exports +")+fmtPct(d.trade.exports_yoy), c:'up'},
+    {v:fmtB(d.credit.loans_b), x:"▲ "+fmtPct(d.credit.loans_mom_pct)+" m/m", c:'up'},
+    {v:fmtB(d.capital.fdi_2025_b), x:"▲ "+d.capital.fdi_yoy+"% y/y", c:'au'},
+    {v:fmtPct(DATA.macro.gdp_fc_cbk_2026), x:"WB: "+fmtPct(DATA.macro.gdp_fc_wb_2026), c:'neutral'}
+  ];
+  document.getElementById('kpi-row').innerHTML=items.map((it,i)=>`
+    <div class="kpi"><span class="src">${t.kpi[i].src}</span>
+      <div class="l">${t.kpi[i].l}</div><div class="v">${it.v}</div>
+      <div class="d ${it.c}">${it.x}</div></div>`).join('');
+}
+
+function renderStrip(t){
+  const d=DATA.trade;
+  const items=[
+    {v:fmtM(d.exports_m),x:"▲ "+fmtPct(d.exports_yoy),c:'up'},
+    {v:fmtM(d.imports_m),x:"▲ "+fmtPct(d.imports_yoy),c:'down'},
+    {v:fmtM(d.deficit_m),x:"▲ "+fmtPct(d.deficit_yoy),c:'down'},
+    {v:fmtM(d.year_2025.exports),x:LANG==='sq'?"viti i plotë":"full year",c:'neutral'},
+    {v:"€"+(d.year_2025.imports/1000).toLocaleString(LANG==='sq'?'de-DE':'en-US')+(LANG==='sq'?" mld":"B"),x:LANG==='sq'?"viti i plotë":"full year",c:'neutral'}
+  ];
+  document.getElementById('trade-strip').innerHTML=items.map((it,i)=>`
+    <div class="mini"><div class="l">${t.trade_strip[i].l}</div>
+    <div class="v">${it.v}</div><div class="d ${it.c}">${it.x}</div></div>`).join('');
+}
+
+function renderRates(t){
+  document.getElementById('rate-rows').innerHTML=t.rate_rows.map(r=>`
+    <div class="srow"><span class="k">${r.k}</span>
+    <span class="n" style="${r.hl?'color:var(--gold)':''}">${r.v}</span></div>`).join('');
+}
+
+function renderFdiRows(t){
+  document.getElementById('fdi-rows').innerHTML=t.fdi_rows.map(r=>`
+    <div class="srow"><span class="k">${r.k}</span><span class="n">${r.v}</span></div>`).join('');
+}
+
+function renderSignals(t){
+  document.getElementById('signal-rows').innerHTML=t.signals.map(s=>`
+    <tr><td>${s.i}</td><td class="m">${s.v}</td>
+    <td class="hide-m" style="color:var(--muted)">${s.r}</td>
+    <td><span class="badge ${s.s}">${s.b}</span></td></tr>`).join('');
+}
+
+/* ============ charts ============ */
+Chart.defaults.color='#8A99B5';
+Chart.defaults.borderColor='rgba(140,165,210,.10)';
+const tick={font:{family:"'IBM Plex Mono'",size:10.5}};
+const grid={color:'rgba(140,165,210,.08)'};
+const base=e=>Object.assign({responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#121C30',borderColor:'rgba(140,165,210,.25)',borderWidth:1,titleFont:{family:"'IBM Plex Mono'"},bodyFont:{family:"'IBM Plex Mono'"}}}},e);
+
+function renderCharts(){
+  Object.values(charts).forEach(c=>c.destroy());
+  const d=DATA;
+
+  charts.infl=new Chart(document.getElementById('chartInflation'),{type:'line',
+    data:{labels:d.inflation.trend.labels,datasets:[{
+      data:d.inflation.trend.yoy,borderColor:'#4F8DFD',borderWidth:2.5,tension:.35,fill:true,
+      backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,260);
+        g.addColorStop(0,'rgba(79,141,253,.28)');g.addColorStop(1,'rgba(79,141,253,0)');return g;},
+      pointBackgroundColor:'#E5B84B',pointBorderColor:'#4F8DFD',pointRadius:4.5}]},
+    options:base({scales:{y:{grid,ticks:Object.assign({callback:v=>v+'%'},tick),suggestedMin:4},x:{grid:{display:false},ticks:tick}}})});
+
+  const cats=d.inflation.categories.items;
+  charts.cats=new Chart(document.getElementById('chartCategories'),{type:'bar',
+    data:{labels:cats.map(c=>c[LANG]),datasets:[{data:cats.map(c=>c.v),borderRadius:3,
+      backgroundColor:cats.map(c=>c.v>=10?'#FF6B5E':(c.v>=4?'#4F8DFD':'#3A5078'))}]},
+    options:base({indexAxis:'y',scales:{x:{grid,ticks:Object.assign({callback:v=>v+'%'},tick)},
+      y:{grid:{display:false},ticks:{font:{family:"'Inter'",size:11}}}}})});
+
+  const st=d.trade.structure;
+  charts.struct=new Chart(document.getElementById('chartExportStructure'),{type:'bar',
+    data:{labels:st.map(s=>s[LANG]),datasets:[{data:st.map(s=>s.v),borderRadius:3,
+      backgroundColor:['#4F8DFD','#3A6FD8','#E5B84B','#5C7BB8','#7A93C4','#2A3B5C']}]},
+    options:base({indexAxis:'y',scales:{x:{grid,ticks:Object.assign({callback:v=>v+'%'},tick)},
+      y:{grid:{display:false},ticks:{font:{family:"'Inter'",size:11}}}}})});
+
+  const ds=d.trade.destinations;
+  charts.dest=new Chart(document.getElementById('chartDestinations'),{type:'doughnut',
+    data:{labels:ds.map(x=>x[LANG]),datasets:[{data:ds.map(x=>x.v),
+      backgroundColor:['#4F8DFD','#E5B84B','#3A5078'],borderColor:'#0D1422',borderWidth:3}]},
+    options:base({cutout:'62%',plugins:{legend:{display:true,position:'bottom',
+      labels:{font:{family:"'IBM Plex Mono'",size:10.5},boxWidth:10,padding:14}}}})});
+
+  charts.loans=new Chart(document.getElementById('chartLoans'),{type:'line',
+    data:{labels:d.credit.loans_trend.labels,datasets:[{
+      data:d.credit.loans_trend.values,borderColor:'#3DD68C',borderWidth:2.5,tension:.3,fill:true,
+      backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,260);
+        g.addColorStop(0,'rgba(61,214,140,.22)');g.addColorStop(1,'rgba(61,214,140,0)');return g;},
+      pointBackgroundColor:'#0D1422',pointBorderColor:'#3DD68C',pointRadius:5,pointBorderWidth:2.5}]},
+    options:base({scales:{y:{grid,ticks:Object.assign({callback:v=>'€'+v+(LANG==='sq'?' mld':'B')},tick)},x:{grid:{display:false},ticks:tick}}})});
+
+  const fs=d.capital.sectors;
+  charts.fdiS=new Chart(document.getElementById('chartFdiSector'),{type:'bar',
+    data:{labels:fs.map(s=>s[LANG]),datasets:[{data:fs.map(s=>s.m),borderRadius:3,
+      backgroundColor:fs.map((s,i)=>i===0?'#E5B84B':'#4F8DFD')}]},
+    options:base({indexAxis:'y',scales:{x:{grid,ticks:Object.assign({callback:v=>'€'+v+'M'},tick)},
+      y:{grid:{display:false},ticks:{font:{family:"'Inter'",size:11}}}},
+      plugins:{tooltip:{callbacks:{label:c=>'€'+c.raw+'M ('+fs[c.dataIndex].v+'%)'}}}})});
+
+  const fo=d.capital.origins;
+  charts.fdiO=new Chart(document.getElementById('chartFdiOrigin'),{type:'doughnut',
+    data:{labels:fo.map(x=>x[LANG]),datasets:[{data:fo.map(x=>x.m),
+      backgroundColor:['#E5B84B','#4F8DFD','#3A5078'],borderColor:'#0D1422',borderWidth:3}]},
+    options:base({cutout:'62%',plugins:{legend:{display:true,position:'bottom',
+      labels:{font:{family:"'IBM Plex Mono'",size:10.5},boxWidth:10,padding:14}},
+      tooltip:{callbacks:{label:c=>'€'+c.raw+'M'}}}})});
+
+  // concentration bar
+  const conc=d.trade.import_conc, total=conc.reduce((a,b)=>a+b.v,0);
+  document.getElementById('conc-val').textContent=fmtPct(total);
+  document.getElementById('conc-bar').innerHTML=
+    `<i style="width:${conc[0].v}%;background:#FF6B5E" title="${conc[0][LANG]} ${conc[0].v}%"></i>`+
+    `<i style="width:${conc[1].v}%;background:#E5B84B" title="${conc[1][LANG]} ${conc[1].v}%"></i>`+
+    `<i style="width:${100-total}%;background:rgba(140,165,210,.15)"></i>`;
+}
+
+function renderSources(){
+  const ref=DATA.inflation.ref_month, tref=DATA.trade.ref_month, cref=DATA.credit.ref_month;
+  const F=(id,txt)=>document.getElementById(id).textContent=txt;
+  F('src-inflation',`ASK — IHÇK, ${ref}`);
+  F('src-categories',`ASK — IHÇK ${LANG==='sq'?'sipas COICOP':'by COICOP'}, ${ref}`);
+  F('src-structure',`ASK — ${LANG==='sq'?'Tregtia e Jashtme':'Foreign Trade'}, ${tref}`);
+  F('src-destinations',`ASK — ${tref}`);
+  F('src-loans',`BQK — ${LANG==='sq'?'Statistikat e bankave komerciale':'Commercial bank statistics'}, ${cref}`);
+  F('src-rates',`BQK — ${cref}`);
+  F('src-fdi-sector',`${LANG==='sq'?'Instituti GAP / BQK — IHD':'GAP Institute / CBK — FDI'} 2025`);
+  F('src-fdi-origin',`${LANG==='sq'?'Instituti GAP — IHD':'GAP Institute — FDI'} 2025`);
+}
+
+/* scroll reveal */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* live data.json (ETL output) -> fallback to SEED */
+fetch('data.json',{cache:'no-store'})
+  .then(r=>r.ok?r.json():Promise.reject())
+  .then(j=>{DATA=Object.assign({},SEED,j);setLang('sq');})
+  .catch(()=>setLang('sq'));
+</script>
+</body>
+</html>
